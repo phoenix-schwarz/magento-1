@@ -342,7 +342,12 @@ class Payone_Core_Model_Service_Amazon_Pay_Checkout
         $quoteGrandTotal    = number_format($this->quote->getGrandTotal(), 4);
         $sessionGrandTotal  = number_format($this->checkoutSession->getPayoneGenericpaymentGrandTotal(), 4);
 
-        if ($quoteGrandTotal != $sessionGrandTotal) {
+        //check the difference between the values
+        $difference = abs((float) $quoteGrandTotal - (float) $sessionGrandTotal);
+
+        //@todo: add a feature toggle to the config for the 1 cent rounding tolerance
+        //if the values are different and the difference is more than one cent (rounding issue) => cancel the payment
+        if ($quoteGrandTotal != $sessionGrandTotal && $difference > 0.01) {        
             // The basket was changed - abort current checkout
             $text = 'Sorry, your transaction with Amazon Pay was not successful. Please try again.';
             return $this->cancelAmazonPayment($session, $text);
